@@ -1,0 +1,26 @@
+INTRODUCTION
+============
+Save the laborious task of clearing out the ticket system each day.
+
+INSTALLATION
+============
+Install the mechanize gem.
+
+Run the kayakocleaner.rb script and provide your Kayako admin URL, your username and password as args:
+
+  ruby kayakocleaner.rb http://support/admin user p455w0rd
+
+CONFIGURATION
+=============
+To handle which tickets are cleared, add a new Ticket to the @tickets_to_clear array:
+
+  Ticket.new("a description", "search term that finds these ticket types", :close)
+
+You must make sure that the search term ONLY finds the specific tickets you wish to close/delete, otherwise
+you will end up closing/deleting the wrong tickets. If in doubt, set the disposal type to :close, not
+:delete!
+
+The description is just used in the command output, so use whatever identifies these tickets to you.
+The disposal method (last argument to the Ticket object) can be :close, or :delete.
+
+This only works with Kayako version 2.

@@ -32,7 +32,9 @@ end
   Ticket.new("status warning", "status warning from ", :delete),
   Ticket.new("ensim backup", "backup notification for ", :delete),
   Ticket.new("cpanel backup", "[cpbackup] backup complete on ", :delete),
-  Ticket.new("site usage summary", "site usage summary of ", :delete)
+  Ticket.new("site usage summary", "site usage summary of ", :delete),
+  Ticket.new("EMC alert", "EMC monitoring alert", :delete),
+  Ticket.new("bounced mail", "returned mail: see transcript fore details", :delete)
 ]
 
 a = Mechanize.new
