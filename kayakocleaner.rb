@@ -64,11 +64,12 @@ manage_page = a.get(@kayako_admin_url + '?_a=maintickets&_m=view&listview=1')
 
   # Fill in the mass action form now with our relevant disposal method
   mass_action_form = results_page.forms[2]
+  # Tick the relevant radio button for closing or deleting
   mass_action_form.radiobuttons_with(:name => 'm_type')[ticket.mass_action_radio_button].check
-  # Loop through our results, ticking checkboxes
   if checkboxes.length > 0
+    # Loop through our results, ticking checkboxes
     mass_action_form.checkboxes.each do |checkbox|
-      if checkbox.name =~ /cb[0-9]{6}/
+      if checkbox.name =~ /cb[0-9]{6}/ # all the ticket checkboxes have this format
         checkbox.check
       end
     end
@@ -77,5 +78,3 @@ manage_page = a.get(@kayako_admin_url + '?_a=maintickets&_m=view&listview=1')
     puts "done!"
   end
 end
-# Tick their boxes
-# Dispose of them how we like
