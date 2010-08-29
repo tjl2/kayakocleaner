@@ -34,7 +34,7 @@ end
   Ticket.new("cpanel backup", "[cpbackup] backup complete on ", :delete),
   Ticket.new("site usage summary", "site usage summary of ", :delete),
   Ticket.new("EMC alert", "EMC monitoring alert", :delete),
-  Ticket.new("bounced mail", "returned mail: see transcript fore details", :delete)
+  Ticket.new("bounced mail", "returned mail: see transcript for details", :delete)
 ]
 
 a = Mechanize.new
