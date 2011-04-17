@@ -60,7 +60,7 @@ def find_and_clear(mechanize_agent, ticket_page, ticket)
     end
     mechanize_agent.submit(mass_action_form, mass_action_form.buttons.first)
   end
-  "#{ticket.disposal.to_s.capitalize.chop}ed #{checkboxes.length} #{ticket.name} tickets."
+  puts "#{ticket.disposal.to_s.capitalize.chop}ed #{checkboxes.length} #{ticket.name} tickets."
 end
 
 a = Mechanize.new
@@ -79,7 +79,6 @@ end
 # Navigate to the 'Manage' page, in list view
 ticket_page = a.get(@kayako_admin_url + '?_a=maintickets&_m=view&listview=1')
 
-output = Parallel.map(@tickets_to_clear) do |ticket|
+Parallel.map(@tickets_to_clear) do |ticket|
   find_and_clear(a, ticket_page, ticket)
 end
-puts output
