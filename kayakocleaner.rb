@@ -4,8 +4,6 @@ require 'bundler/setup'
 require 'mechanize'
 require 'parallel'
 
-STDOUT.sync = true
-
 @kayako_admin_url = ARGV[0]
 @username = ARGV[1]
 @password = ARGV[2]
@@ -40,6 +38,30 @@ end
   Ticket.new("domain renewal", "successful renew for", :close)
 ]
 
+def find_and_clear(ticket_page, ticket)
+  search_form = ticket_page.forms[1]
+  search_form.field_with(:name => 'search_query').value = ticket.search_term
+  search_form.field_with(:name => 'sort_results').value = 500 # pick a suitable number of results
+  results_page = a.submit(search_form, search_form.buttons.first)
+  # Report how many tickets we found of this ticket type
+  checkboxes = results_page.search('//input[starts-with(@name, "cb")]')
+
+  # Fill in the mass action form now with our relevant disposal method
+  mass_action_form = results_page.forms[2]
+  # Tick the relevant radio button for closing or deleting
+  mass_action_form.radiobuttons_with(:name => 'm_type')[ticket.mass_action_radio_button].check
+  if checkboxes.length > 0
+    # Loop through our results, ticking checkboxes
+    mass_action_form.checkboxes.each do |checkbox|
+      if checkbox.name =~ /cb[0-9]{6}/ # all the ticket checkboxes have this format
+        checkbox.check
+      end
+    end
+    a.submit(mass_action_form, mass_action_form.buttons.first)
+    puts "#{ticket.disposal.to_s.capitalize.chop}ed #{checkboxes.length} #{ticket.name} tickets."
+  end
+end
+
 a = Mechanize.new
 # Log in
 login_page = a.get(@kayako_admin_url)
@@ -54,32 +76,8 @@ if dashboard_page.title !~ /.*Home$/
 end
 
 # Navigate to the 'Manage' page, in list view
-manage_page = a.get(@kayako_admin_url + '?_a=maintickets&_m=view&listview=1')
+ticket_page = a.get(@kayako_admin_url + '?_a=maintickets&_m=view&listview=1')
 
-# Search for the tickets we don't want
-@tickets_to_clear.each do |ticket|
-  print "Searching for #{ticket.name} tickets to clear..."
-  search_form = manage_page.forms[1]
-  search_form.field_with(:name => 'search_query').value = ticket.search_term
-  search_form.field_with(:name => 'sort_results').value = 500 # pick a suitable number of results
-  results_page = a.submit(search_form, search_form.buttons.first)
-  # Report how many tickets we found of this ticket type
-  checkboxes = results_page.search('//input[starts-with(@name, "cb")]')
-  puts " found #{checkboxes.length} tickets."
-
-  # Fill in the mass action form now with our relevant disposal method
-  mass_action_form = results_page.forms[2]
-  # Tick the relevant radio button for closing or deleting
-  mass_action_form.radiobuttons_with(:name => 'm_type')[ticket.mass_action_radio_button].check
-  if checkboxes.length > 0
-    # Loop through our results, ticking checkboxes
-    mass_action_form.checkboxes.each do |checkbox|
-      if checkbox.name =~ /cb[0-9]{6}/ # all the ticket checkboxes have this format
-        checkbox.check
-      end
-    end
-    print "#{ticket.disposal.to_s.capitalize.chop}ing #{checkboxes.length} #{ticket.name} tickets... "
-    a.submit(mass_action_form, mass_action_form.buttons.first)
-    puts "done!"
-  end
+output = Parallel.map(@tickets_to_clear) do |ticket|
+  find_and_clear(ticket_page, ticket)
 end
