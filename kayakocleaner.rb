@@ -1,6 +1,8 @@
 # kayakocleaner
 require 'rubygems'
+require 'bundler/setup'
 require 'mechanize'
+require 'parallel'
 
 STDOUT.sync = true
 
