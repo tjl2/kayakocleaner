@@ -45,15 +45,14 @@ def find_and_clear(mechanize_agent, ticket_page, ticket)
   search_form.field_with(:name => 'search_query').value = ticket.search_term
   search_form.field_with(:name => 'sort_results').value = 500 # pick a suitable number of results
   results_page = mechanize_agent.submit(search_form, search_form.buttons.first)
-  # Report how many tickets we found of this ticket type
+  # Each result has a checkbox to use in 'mass action'
   checkboxes = results_page.search('//input[starts-with(@name, "cb")]')
-
-  # Fill in the mass action form now with our relevant disposal method
+  # Fill in the 'mass action' form now with our relevant disposal method
   mass_action_form = results_page.forms[2]
   # Tick the relevant radio button for closing or deleting
   mass_action_form.radiobuttons_with(:name => 'm_type')[ticket.mass_action_radio_button].check
+  # Loop through our results, ticking the checkboxes
   if checkboxes.length > 0
-    # Loop through our results, ticking checkboxes
     mass_action_form.checkboxes.each do |checkbox|
       if checkbox.name =~ /cb[0-9]{6}/ # all the ticket checkboxes have this format
         checkbox.check
