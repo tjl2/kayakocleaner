@@ -4,6 +4,8 @@ require 'bundler/setup'
 require 'mechanize'
 require 'parallel'
 
+STDOUT.sync = true
+
 @kayako_admin_url = ARGV[0]
 @username = ARGV[1]
 @password = ARGV[2]
@@ -38,11 +40,11 @@ end
   Ticket.new("domain renewal", "successful renew for", :close)
 ]
 
-def find_and_clear(ticket_page, ticket)
+def find_and_clear(mechanize_agent, ticket_page, ticket)
   search_form = ticket_page.forms[1]
   search_form.field_with(:name => 'search_query').value = ticket.search_term
   search_form.field_with(:name => 'sort_results').value = 500 # pick a suitable number of results
-  results_page = a.submit(search_form, search_form.buttons.first)
+  results_page = mechanize_agent.submit(search_form, search_form.buttons.first)
   # Report how many tickets we found of this ticket type
   checkboxes = results_page.search('//input[starts-with(@name, "cb")]')
 
@@ -57,9 +59,9 @@ def find_and_clear(ticket_page, ticket)
         checkbox.check
       end
     end
-    a.submit(mass_action_form, mass_action_form.buttons.first)
-    puts "#{ticket.disposal.to_s.capitalize.chop}ed #{checkboxes.length} #{ticket.name} tickets."
+    mechanize_agent.submit(mass_action_form, mass_action_form.buttons.first)
   end
+  "#{ticket.disposal.to_s.capitalize.chop}ed #{checkboxes.length} #{ticket.name} tickets."
 end
 
 a = Mechanize.new
@@ -79,5 +81,6 @@ end
 ticket_page = a.get(@kayako_admin_url + '?_a=maintickets&_m=view&listview=1')
 
 output = Parallel.map(@tickets_to_clear) do |ticket|
-  find_and_clear(ticket_page, ticket)
+  find_and_clear(a, ticket_page, ticket)
 end
+puts output
